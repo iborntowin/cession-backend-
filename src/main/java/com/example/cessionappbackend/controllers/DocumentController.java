@@ -4,6 +4,9 @@ import com.example.cessionappbackend.dto.DocumentDTO;
 import com.example.cessionappbackend.services.DocumentService;
 import com.example.cessionappbackend.repositories.ClientRepository;
 import com.example.cessionappbackend.entities.Client;
+import com.example.cessionappbackend.dto.SalaryAssignmentDocumentDTO;
+import com.example.cessionappbackend.services.SalaryAssignmentPdfGeneratorService;
+
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +32,9 @@ public class DocumentController {
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    private SalaryAssignmentPdfGeneratorService salaryAssignmentPdfGeneratorService;
+
     // GET /api/v1/documents/client/{clientId} - Get documents by client ID
     @GetMapping("/client/{clientId}")
     public ResponseEntity<List<DocumentDTO>> getDocumentsByClientId(@PathVariable UUID clientId) {
@@ -49,6 +55,25 @@ public class DocumentController {
         return documentService.getDocumentById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // POST /api/v1/documents/salary-assignment - Generate Salary Assignment Document (PDF)
+    @PostMapping(value = "/salary-assignment", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> generateSalaryAssignmentPdf(@RequestBody SalaryAssignmentDocumentDTO documentData) {
+        try {
+            byte[] pdfBytes = salaryAssignmentPdfGeneratorService.generatePdf(documentData);
+            if (pdfBytes == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            }
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"إحالة_على_الأجر_تجارية.pdf\"")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
+        } catch (Exception e) {
+            System.err.println("Error generating salary assignment PDF: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     // POST /api/v1/documents/client/{clientId}/{documentType} - Upload client document

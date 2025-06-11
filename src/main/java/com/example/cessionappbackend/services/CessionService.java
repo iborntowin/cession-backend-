@@ -248,6 +248,11 @@ public class CessionService {
         dto.setId(cession.getId());
         dto.setClientId(cession.getClient().getId());
         dto.setClientName(cession.getClient().getFullName());
+        dto.setClientNumber(cession.getClient().getClientNumber());
+        dto.setClientCin(cession.getClient().getCin());
+        dto.setClientAddress(cession.getClient().getAddress());
+        dto.setClientWorkplace(cession.getClient().getWorkplace() != null ? cession.getClient().getWorkplace().getName() : null);
+        dto.setClientJob(cession.getClient().getJob() != null ? cession.getClient().getJob().getName() : null);
         dto.setTotalLoanAmount(cession.getTotalLoanAmount());
         dto.setMonthlyPayment(cession.getMonthlyPayment());
         dto.setStartDate(cession.getStartDate());
@@ -258,18 +263,27 @@ public class CessionService {
         dto.setMonthsRemaining(cession.getMonthsRemaining());
         dto.setBankOrAgency(cession.getBankOrAgency());
         dto.setStatus(cession.getStatus());
-        
-        // Add job information if available
-        if (cession.getClient().getJob() != null) {
-            dto.setJobId(cession.getClient().getJob().getId());
-            dto.setJobName(cession.getClient().getJob().getName());
-        }
-        
+
+        // Set contract document info if available
         if (cession.getContractDocument() != null) {
             dto.setContractDocumentId(cession.getContractDocument().getId());
             dto.setContractDocumentName(cession.getContractDocument().getFileName());
         }
-        
+
+        // Set new fields for PDF generation
+        dto.setCourtName(cession.getCourtName());
+        dto.setBookNumber(cession.getBookNumber());
+        dto.setPageNumber(cession.getPageNumber());
+        dto.setDate(cession.getDate());
+        dto.setSupplierTaxId(cession.getSupplierTaxId());
+        dto.setSupplierName(cession.getSupplierName());
+        dto.setSupplierAddress(cession.getSupplierAddress());
+        dto.setSupplierBankAccount(cession.getSupplierBankAccount());
+        dto.setItemDescription(cession.getItemDescription());
+        dto.setAmountInWords(cession.getAmountInWords());
+        dto.setLoanDuration(cession.getLoanDuration());
+        dto.setFirstDeductionMonthArabic(cession.getFirstDeductionMonthArabic());
+
         return dto;
     }
     

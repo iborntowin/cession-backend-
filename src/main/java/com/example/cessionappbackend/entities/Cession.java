@@ -80,6 +80,20 @@ public class Cession {
     @Column(nullable = false)
     private OffsetDateTime updatedAt;
 
+    // New fields for PDF generation
+    private String courtName;
+    private String bookNumber;
+    private String pageNumber;
+    private String date;
+    private String supplierTaxId;
+    private String supplierName;
+    private String supplierAddress;
+    private String supplierBankAccount;
+    private String itemDescription;
+    private String amountInWords;
+    private String loanDuration;
+    private String firstDeductionMonthArabic;
+
     // Method to link the contract document (potentially called from service layer)
     public void setContractDocument(Document document) {
         this.contractDocument = document;

@@ -17,6 +17,9 @@ public class CessionDTO {
     private String clientName;
     private Integer clientNumber;
     private Integer clientCin;
+    private String clientAddress;
+    private String clientWorkplace;
+    private String clientJob;
     private UUID contractDocumentId;
     private String contractDocumentName;
     private BigDecimal totalLoanAmount;
@@ -33,4 +36,18 @@ public class CessionDTO {
     // Job information
     private UUID jobId;
     private String jobName;
+
+    // New fields for PDF generation
+    private String courtName;
+    private String bookNumber;
+    private String pageNumber;
+    private String date;
+    private String supplierTaxId;
+    private String supplierName;
+    private String supplierAddress;
+    private String supplierBankAccount;
+    private String itemDescription;
+    private String amountInWords;
+    private String loanDuration;
+    private String firstDeductionMonthArabic;
 }

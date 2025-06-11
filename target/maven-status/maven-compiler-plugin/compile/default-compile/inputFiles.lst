@@ -44,7 +44,9 @@ C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionap
 C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\services\CessionService.java
 C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\services\StorageService.java
 C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\entities\User.java
+C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\services\SalaryAssignmentPdfGeneratorService.java
 C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\dto\WorkplaceDTO.java
+C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\dto\SalaryAssignmentDocumentDTO.java
 C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\services\AuthService.java
 C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\controllers\DocumentController.java
 C:\Summer\cession-app-v2\cession-app\backend\src\main\java\com\example\cessionappbackend\services\UserService.java

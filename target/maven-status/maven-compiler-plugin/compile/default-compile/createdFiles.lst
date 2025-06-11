@@ -6,6 +6,7 @@ com\example\cessionappbackend\services\WorkplaceService.class
 com\example\cessionappbackend\dto\DocumentDTO.class
 com\example\cessionappbackend\dto\AuthRequest.class
 com\example\cessionappbackend\repositories\PaymentRepository.class
+com\example\cessionappbackend\dto\SalaryAssignmentDocumentDTO.class
 com\example\cessionappbackend\security\SecurityConfig.class
 com\example\cessionappbackend\services\CessionService.class
 com\example\cessionappbackend\services\JobService.class
@@ -26,6 +27,7 @@ com\example\cessionappbackend\dto\LoginRequest.class
 com\example\cessionappbackend\dto\PaymentDTO.class
 com\example\cessionappbackend\entities\Payment.class
 com\example\cessionappbackend\controllers\PaymentController.class
+com\example\cessionappbackend\services\SalaryAssignmentPdfGeneratorService.class
 com\example\cessionappbackend\CessionAppBackendApplication.class
 com\example\cessionappbackend\dto\ClientDTO.class
 com\example\cessionappbackend\security\JwtAuthenticationFilter.class
