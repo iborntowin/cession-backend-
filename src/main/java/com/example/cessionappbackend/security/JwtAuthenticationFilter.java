@@ -34,8 +34,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
             logger.debug("Processing request: {} {}", request.getMethod(), request.getRequestURI());
+            logger.debug("Received JWT: {}", jwt != null ? jwt : "null");
 
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            if (StringUtils.hasText(jwt)) {
+                logger.debug("Attempting to validate JWT token");
+                boolean isValid = tokenProvider.validateToken(jwt);
+                logger.debug("JWT token validation result: {}", isValid);
+
+                if (isValid) {
                 String username = tokenProvider.getUsernameFromJWT(jwt);
                 logger.debug("Valid JWT token found for user: {}", username);
 
@@ -54,10 +60,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logger.debug("Authentication set in SecurityContext for user: {} with authorities: {}", 
                     username, authentication.getAuthorities());
             } else {
-                logger.debug("No valid JWT token found in request");
+                    logger.debug("JWT token validation failed");
+                }
+            } else {
+                logger.debug("No JWT token found in request");
             }
         } catch (Exception ex) {
-            logger.error("Could not set user authentication in security context", ex);
+            logger.error("Could not set user authentication in security context: {}", ex.getMessage(), ex);
         }
 
         filterChain.doFilter(request, response);
