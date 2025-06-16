@@ -1,50 +1,94 @@
 package com.example.cessionappbackend.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Max;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
-
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
 
 @Entity
-@Table(name = "clients", indexes = {
-        @Index(name = "idx_clients_cin", columnList = "cin")
-})
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "clients")
 public class Client {
-
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(
-            name = "UUID",
-            strategy = "org.hibernate.id.UUIDGenerator"
-    )
-    @Column(updatable = false, nullable = false)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // New client number for paperwork
-    @Column(name = "client_number", unique = true, nullable = false, updatable = false)
+    @Column(name = "client_number", unique = true, nullable = false)
     private Integer clientNumber;
 
-    // Explicit getter/setter for id
-    public UUID getId() {
-        return this.id;
+    @Column(name = "full_name", nullable = false)
+    @NotBlank(message = "Full name is required")
+    @Size(max = 255, message = "Full name cannot exceed 255 characters")
+    private String fullName;
+
+    @Column(unique = true, nullable = false)
+    @NotNull(message = "CIN is required")
+    private Integer cin; // National ID Card number
+
+    @AssertTrue(message = "CIN must be exactly 8 digits")
+    private boolean isCinValid() {
+        if (cin == null) return false;
+        String cinStr = String.format("%08d", cin);
+        return cinStr.length() == 8;
     }
 
-    @Column(name = "full_name", nullable = false, length = 255)
-    private String fullName;
+    @Column(length = 255)
+    private String phoneNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workplace_id")
+    private Workplace workplace;
+
+    @Column(length = 255)
+    private String address;
+
+    @Column(name = "worker_number", unique = true)
+    @NotNull(message = "Worker number is required")
+    private Long workerNumber;
+
+    @AssertTrue(message = "Worker number must be exactly 10 digits")
+    private boolean isWorkerNumberValid() {
+        if (workerNumber == null) return false;
+        String workerStr = String.format("%010d", workerNumber);
+        return workerStr.length() == 10;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_id")
+    private Job job;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Document> documents;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Cession> cessions;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+    // Getters and Setters
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public Integer getClientNumber() {
+        return clientNumber;
+    }
+
+    public void setClientNumber(Integer clientNumber) {
+        this.clientNumber = clientNumber;
+    }
 
     public String getFullName() {
         return fullName;
@@ -54,21 +98,13 @@ public class Client {
         this.fullName = fullName;
     }
 
-    @Column(unique = true, nullable = false)
-    @Min(value = 10000000, message = "CIN must be 8 digits")
-    @Max(value = 99999999, message = "CIN must be 8 digits")
-    private Integer cin; // National ID Card number
-
     public Integer getCin() {
-        return this.cin;
+        return cin;
     }
 
     public void setCin(Integer cin) {
         this.cin = cin;
     }
-
-    @Column(length = 255)
-    private String phoneNumber;
 
     public String getPhoneNumber() {
         return phoneNumber;
@@ -78,10 +114,6 @@ public class Client {
         this.phoneNumber = phoneNumber;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workplace_id")
-    private Workplace workplace;
-
     public Workplace getWorkplace() {
         return workplace;
     }
@@ -89,14 +121,6 @@ public class Client {
     public void setWorkplace(Workplace workplace) {
         this.workplace = workplace;
     }
-
-    @Column(length = 255)
-    private String address;
-
-    @Column(name = "worker_number", unique = true)
-    @Min(value = 10000000, message = "Worker number must be 8 digits")
-    @Max(value = 99999999, message = "Worker number must be 8 digits")
-    private Integer workerNumber;
 
     public String getAddress() {
         return address;
@@ -106,17 +130,13 @@ public class Client {
         this.address = address;
     }
 
-    public Integer getWorkerNumber() {
+    public Long getWorkerNumber() {
         return workerNumber;
     }
 
-    public void setWorkerNumber(Integer workerNumber) {
+    public void setWorkerNumber(Long workerNumber) {
         this.workerNumber = workerNumber;
     }
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
-    private Job job;
 
     public Job getJob() {
         return job;
@@ -126,17 +146,35 @@ public class Client {
         this.job = job;
     }
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Document> documents;
+    public List<Document> getDocuments() {
+        return documents;
+    }
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<Cession> cessions;
+    public void setDocuments(List<Document> documents) {
+        this.documents = documents;
+    }
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
+    public List<Cession> getCessions() {
+        return cessions;
+    }
 
-    @UpdateTimestamp
-    @Column(nullable = false)
-    private OffsetDateTime updatedAt;
+    public void setCessions(List<Cession> cessions) {
+        this.cessions = cessions;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

@@ -1,29 +1,39 @@
 package com.example.cessionappbackend.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.util.UUID;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.FetchType;
+import com.example.cessionappbackend.entities.Workplace;
 
 @Data
 public class ClientDTO {
     private UUID id;
     private Integer clientNumber;
 
-    @NotBlank(message = "Full name cannot be blank")
+    @Column(name = "full_name", nullable = false)
+    @NotBlank(message = "Full name is required")
     @Size(max = 255, message = "Full name cannot exceed 255 characters")
     private String fullName;
 
-    @NotNull(message = "CIN cannot be null")
-    @Min(value = 10000000, message = "CIN must be 8 digits")
-    @Max(value = 99999999, message = "CIN must be 8 digits")
-    private Integer cin;
+    @Column(unique = true, nullable = false)
+    @NotNull(message = "CIN is required")
+    private Integer cin; // National ID Card number
+
+    @AssertTrue(message = "CIN must be exactly 8 digits")
+    private boolean isCinValid() {
+        if (cin == null) return false;
+        String cinStr = String.format("%08d", cin);
+        return cinStr.length() == 8;
+    }
 
     @Size(max = 255, message = "Phone number cannot exceed 255 characters")
+    @Column(length = 255)
     private String phoneNumber;
 
     // New fields for linked Workplace and Job
@@ -33,12 +43,19 @@ public class ClientDTO {
     private UUID jobId;
     private String jobName;
 
-    @Size(max = 255, message = "Address cannot exceed 255 characters")
+    @Column(length = 255)
     private String address;
 
-    @Min(value = 10000000, message = "Worker number must be 8 digits")
-    @Max(value = 99999999, message = "Worker number must be 8 digits")
-    private Integer workerNumber;
+    @Column(name = "worker_number", unique = true)
+    @NotNull(message = "Worker number is required")
+    private Long workerNumber;
+
+    @AssertTrue(message = "Worker number must be exactly 10 digits")
+    private boolean isWorkerNumberValid() {
+        if (workerNumber == null) return false;
+        String workerStr = String.format("%010d", workerNumber);
+        return workerStr.length() == 10;
+    }
 
     public void setId(UUID id) {
         this.id = id;
@@ -54,7 +71,7 @@ public class ClientDTO {
     }
 
     public Integer getCin() {
-        return cin;
+        return this.cin;
     }
 
     public void setCin(Integer cin) {
@@ -103,6 +120,18 @@ public class ClientDTO {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workplace_id")
+    private Workplace workplace;
+
+    public Workplace getWorkplace() {
+        return workplace;
+    }
+
+    public void setWorkplace(Workplace workplace) {
+        this.workplace = workplace;
     }
 }
 
