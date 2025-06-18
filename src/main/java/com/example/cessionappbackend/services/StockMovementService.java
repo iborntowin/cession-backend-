@@ -6,6 +6,9 @@ import com.example.cessionappbackend.repositories.StockMovementRepository;
 import com.example.cessionappbackend.repositories.ProductRepository;
 import com.example.cessionappbackend.dto.StockMovementDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -34,38 +37,62 @@ public class StockMovementService {
     }
     
     public List<StockMovementDTO> getRecentStockMovements(String type, int limit) {
-        List<StockMovement> movements = stockMovementRepository.findRecentStockMovements(type, limit);
-        return movements.stream()
-            .map(movement -> {
-                StockMovementDTO dto = new StockMovementDTO();
-                dto.setId(movement.getId());
-                dto.setType(movement.getType());
-                dto.setQuantity(movement.getQuantity());
-                dto.setPreviousQuantity(movement.getPreviousQuantity());
-                dto.setNewQuantity(movement.getNewQuantity());
-                dto.setSellingPriceAtSale(movement.getSellingPriceAtSale());
-                dto.setNotes(movement.getNotes());
-                dto.setCreatedAt(movement.getCreatedAt());
-                
-                // Ensure product data is loaded
-                if (movement.getProduct() != null) {
-                    dto.setProductId(movement.getProduct().getId());
-                    dto.setProductName(movement.getProduct().getName());
-                    dto.setPurchasePrice(movement.getProduct().getPurchasePrice());
-                    
-                    // Calculate profit for OUTBOUND movements
-                    if (movement.getType() == StockMovement.MovementType.OUTBOUND && 
-                        movement.getSellingPriceAtSale() != null && 
-                        movement.getProduct().getPurchasePrice() != null) {
-                        BigDecimal profit = movement.getSellingPriceAtSale()
-                            .subtract(movement.getProduct().getPurchasePrice())
-                            .multiply(BigDecimal.valueOf(Math.abs(movement.getQuantity())));
-                        dto.setProfit(profit);
-                    }
+        try {
+            // Convert string type to enum if provided
+            StockMovement.MovementType movementType = null;
+            if (type != null && !type.isEmpty()) {
+                try {
+                    movementType = StockMovement.MovementType.valueOf(type.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid movement type: " + type);
                 }
-                return dto;
-            })
-            .collect(Collectors.toList());
+            }
+            
+            Pageable pageable = PageRequest.of(0, limit);
+            Page<StockMovement> movementsPage = stockMovementRepository.findRecentStockMovements(
+                movementType,
+                pageable
+            );
+            
+            return movementsPage.getContent().stream()
+                .map(movement -> {
+                    StockMovementDTO dto = new StockMovementDTO();
+                    dto.setId(movement.getId());
+                    dto.setType(movement.getType());
+                    dto.setQuantity(movement.getQuantity());
+                    dto.setPreviousQuantity(movement.getPreviousQuantity());
+                    dto.setNewQuantity(movement.getNewQuantity());
+                    dto.setSellingPriceAtSale(movement.getSellingPriceAtSale());
+                    dto.setNotes(movement.getNotes());
+                    dto.setCreatedAt(movement.getCreatedAt());
+                    
+                    // Ensure product data is loaded and set
+                    if (movement.getProduct() != null) {
+                        dto.setProductId(movement.getProduct().getId());
+                        dto.setProductName(movement.getProduct().getName());
+                        dto.setPurchasePrice(movement.getProduct().getPurchasePrice());
+                        
+                        // Calculate profit for OUTBOUND movements
+                        if (movement.getType() == StockMovement.MovementType.OUTBOUND && 
+                            movement.getSellingPriceAtSale() != null && 
+                            movement.getProduct().getPurchasePrice() != null) {
+                            BigDecimal profit = movement.getSellingPriceAtSale()
+                                .subtract(movement.getProduct().getPurchasePrice())
+                                .multiply(BigDecimal.valueOf(Math.abs(movement.getQuantity())));
+                            dto.setProfit(profit);
+                        } else {
+                            dto.setProfit(BigDecimal.ZERO);
+                        }
+                    } else {
+                        dto.setProductName("Unknown Product");
+                        dto.setProfit(BigDecimal.ZERO);
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching recent stock movements: " + e.getMessage(), e);
+        }
     }
     
     @Transactional
@@ -135,5 +162,19 @@ public class StockMovementService {
         dto.setCreatedAt(movement.getCreatedAt());
         dto.setSellingPriceAtSale(movement.getSellingPriceAtSale());
         return dto;
+    }
+
+    public BigDecimal getTotalSalesIncome(LocalDateTime startDate, LocalDateTime endDate) {
+        List<StockMovement> sales = stockMovementRepository.findByCreatedAtBetween(startDate, endDate);
+        return sales.stream()
+            .filter(movement -> movement.getType() == StockMovement.MovementType.OUTBOUND)
+            .map(movement -> {
+                if (movement.getSellingPriceAtSale() != null) {
+                    return movement.getSellingPriceAtSale()
+                        .multiply(BigDecimal.valueOf(movement.getQuantity()));
+                }
+                return BigDecimal.ZERO;
+            })
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 } 

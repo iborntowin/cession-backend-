@@ -2,12 +2,15 @@ package com.example.cessionappbackend.repositories;
 
 import com.example.cessionappbackend.entities.StockMovement;
 import com.example.cessionappbackend.entities.StockMovement.MovementType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 @Repository
 public interface StockMovementRepository extends JpaRepository<StockMovement, Long> {
@@ -23,9 +26,6 @@ public interface StockMovementRepository extends JpaRepository<StockMovement, Lo
 
     List<StockMovement> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
-    @Query(value = "SELECT sm.* FROM stock_movements sm " +
-           "JOIN product p ON sm.product_id = p.id " +
-           "WHERE (:type IS NULL OR sm.type = :type) " +
-           "ORDER BY sm.created_at DESC LIMIT :limit", nativeQuery = true)
-    List<StockMovement> findRecentStockMovements(@Param("type") String type, @Param("limit") int limit);
+    @Query("SELECT sm FROM StockMovement sm LEFT JOIN FETCH sm.product p WHERE (:type IS NULL OR sm.type = :type) ORDER BY sm.createdAt DESC")
+    Page<StockMovement> findRecentStockMovements(@Param("type") MovementType type, Pageable pageable);
 } 

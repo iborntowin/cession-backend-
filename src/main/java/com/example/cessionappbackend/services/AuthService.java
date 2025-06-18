@@ -94,7 +94,7 @@ public class AuthService {
         String token = tokenProvider.generateToken(authentication);
 
         // Return response
-        return new AuthResponse(token, savedUser.getEmail(), savedUser.getFullName(), savedUser.getRole());
+        return new AuthResponse(token, savedUser.getId(), savedUser.getEmail(), savedUser.getFullName(), savedUser.getRole());
     }
 
     public AuthResponse login(LoginRequest loginRequest) {
@@ -118,9 +118,9 @@ public class AuthService {
         // Generate JWT token
         String token = tokenProvider.generateToken(authentication);
 
-        AuthResponse authResponse = new AuthResponse(token, user.getEmail(), user.getFullName(), user.getRole());
+        AuthResponse authResponse = new AuthResponse(token, user.getId(), user.getEmail(), user.getFullName(), user.getRole());
         logger.info("Login successful for user: {}", user.getEmail());
-        logger.info("AuthResponse details: email={}, fullName={}, role={}", authResponse.getEmail(), authResponse.getFullName(), authResponse.getRole());
+        logger.info("AuthResponse details: id={}, email={}, fullName={}, role={}", authResponse.getId(), authResponse.getEmail(), authResponse.getFullName(), authResponse.getRole());
 
         // Return response
         return authResponse;
