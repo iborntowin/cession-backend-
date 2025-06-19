@@ -1,5 +1,6 @@
 package com.example.cessionappbackend.config;
 
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +13,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import jakarta.annotation.PostConstruct;
 
 import java.util.Arrays;
 import java.util.List;
@@ -30,43 +30,60 @@ public class WebSecurityConfig {
     }
 
     @Bean
-public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-        .cors().configurationSource(corsConfigurationSource()).and()
-        .csrf().disable()
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow all OPTIONS requests
-            .requestMatchers("/api/v1/auth/**").permitAll()
-            .anyRequest().authenticated()
-        )
-        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-    
-    return http.build();
-}
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                // Updated CORS configuration to avoid deprecated method
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
+
+        return http.build();
+    }
 
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
-    
-    // Explicitly allow your frontend origin
-    config.setAllowedOrigins(Arrays.asList(
-        "https://cession-frontend.vercel.app",
-        "http://localhost:3000" // For local development
-    ));
-    
-    // Critical for preflight
-    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-    config.setExposedHeaders(Arrays.asList("Authorization"));
-    config.setAllowCredentials(true);
-    config.setMaxAge(3600L);
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config); // Apply to all paths
-    return source;
-}
+        // Allowed origins
+        List<String> allowedOrigins = Arrays.asList(
+                frontendUrl,
+                "https://cession-frontend.vercel.app",
+                "http://localhost:3000",
+                "http://localhost:5173"
+        );
+        config.setAllowedOrigins(allowedOrigins);
 
-    // Additional explicit CORS filter bean as fallback
+        // Allowed methods and headers
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "Origin",
+                "X-Requested-With",
+                "Access-Control-Request-Method",
+                "Access-Control-Request-Headers"
+        ));
+        config.setExposedHeaders(Arrays.asList(
+                "Authorization",
+                "Access-Control-Allow-Origin",
+                "Access-Control-Allow-Credentials"
+        ));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
     @Bean
     public CorsFilter corsFilter() {
         return new CorsFilter(corsConfigurationSource());
