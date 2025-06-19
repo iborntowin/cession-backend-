@@ -11,6 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import jakarta.annotation.PostConstruct;
 
 import java.util.Arrays;
@@ -31,12 +32,13 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors().configurationSource(corsConfigurationSource()).and()
+            .cors().and()
             .csrf().disable()
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow all OPTIONS requests
-                .requestMatchers("/api/v1/auth/**").permitAll() // Allow auth endpoints
-                .anyRequest().authenticated() // Secure other endpoints
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/v1/auth/**").permitAll() // Added this line for your auth endpoint
+                .anyRequest().authenticated()
             )
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         
@@ -47,9 +49,13 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // List of allowed origins (make sure no trailing slashes)
+        // Normalize frontend URL by removing trailing slash if present
+        String normalizedFrontendUrl = frontendUrl.endsWith("/") 
+            ? frontendUrl.substring(0, frontendUrl.length() - 1)
+            : frontendUrl;
+            
         List<String> allowedOrigins = Arrays.asList(
-            frontendUrl,
+            normalizedFrontendUrl,
             "http://localhost:5173",
             "http://localhost:3000",
             "https://cession-frontend.vercel.app"
@@ -57,16 +63,7 @@ public class WebSecurityConfig {
         
         System.out.println("Configuring CORS with allowed origins: " + allowedOrigins);
         
-        // For Spring Boot 2.4+
         configuration.setAllowedOrigins(allowedOrigins);
-        
-        // If you need patterns (e.g., for Vercel preview deployments), use:
-        // configuration.setAllowedOriginPatterns(Arrays.asList(
-        //     frontendUrl,
-        //     "http://localhost:*",
-        //     "https://cession-frontend*.vercel.app"
-        // ));
-
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(
             "Authorization",
@@ -88,5 +85,11 @@ public class WebSecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    // Additional explicit CORS filter bean as fallback
+    @Bean
+    public CorsFilter corsFilter() {
+        return new CorsFilter(corsConfigurationSource());
     }
 }
