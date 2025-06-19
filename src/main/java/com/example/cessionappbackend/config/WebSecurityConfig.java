@@ -30,62 +30,41 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .cors().and()
-            .csrf().disable()
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/v1/auth/**").permitAll() // Added this line for your auth endpoint
-                .anyRequest().authenticated()
-            )
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        
-        return http.build();
-    }
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .cors().configurationSource(corsConfigurationSource()).and()
+        .csrf().disable()
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow all OPTIONS requests
+            .requestMatchers("/api/v1/auth/**").permitAll()
+            .anyRequest().authenticated()
+        )
+        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    
+    return http.build();
+}
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Normalize frontend URL by removing trailing slash if present
-        String normalizedFrontendUrl = frontendUrl.endsWith("/") 
-            ? frontendUrl.substring(0, frontendUrl.length() - 1)
-            : frontendUrl;
-            
-        List<String> allowedOrigins = Arrays.asList(
-            normalizedFrontendUrl,
-            "http://localhost:5173",
-            "http://localhost:3000",
-            "https://cession-frontend.vercel.app"
-        );
-        
-        System.out.println("Configuring CORS with allowed origins: " + allowedOrigins);
-        
-        configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList(
-            "Authorization",
-            "Content-Type",
-            "Accept",
-            "Origin",
-            "X-Requested-With",
-            "Access-Control-Request-Method",
-            "Access-Control-Request-Headers"
-        ));
-        configuration.setExposedHeaders(Arrays.asList(
-            "Authorization",
-            "Access-Control-Allow-Origin",
-            "Access-Control-Allow-Credentials"
-        ));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    
+    // Explicitly allow your frontend origin
+    config.setAllowedOrigins(Arrays.asList(
+        "https://cession-frontend.vercel.app",
+        "http://localhost:3000" // For local development
+    ));
+    
+    // Critical for preflight
+    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+    config.setExposedHeaders(Arrays.asList("Authorization"));
+    config.setAllowCredentials(true);
+    config.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config); // Apply to all paths
+    return source;
+}
 
     // Additional explicit CORS filter bean as fallback
     @Bean
