@@ -10,6 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import jakarta.annotation.PostConstruct;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +21,11 @@ public class WebSecurityConfig {
 
     @Value("${frontend.url}")
     private String frontendUrl;
+
+    @PostConstruct
+    public void logFrontendUrl() {
+        System.out.println("CORS frontendUrl: " + frontendUrl);
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
