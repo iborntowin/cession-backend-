@@ -3,6 +3,7 @@ package com.example.cessionappbackend.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -24,14 +25,19 @@ public class WebSecurityConfig {
 
     @PostConstruct
     public void logFrontendUrl() {
-        System.out.println("CORS frontendUrl: " + frontendUrl);
+        System.out.println("Configured CORS frontendUrl: " + frontendUrl);
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors().and()
+            .cors().configurationSource(corsConfigurationSource()).and()
             .csrf().disable()
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow all OPTIONS requests
+                .requestMatchers("/api/v1/auth/**").permitAll() // Allow auth endpoints
+                .anyRequest().authenticated() // Secure other endpoints
+            )
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         
         return http.build();
@@ -40,14 +46,26 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Allow production frontend from env, localhost for dev, and all Vercel preview domains
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            frontendUrl, // from environment variable (main production frontend)
+        
+        // List of allowed origins (make sure no trailing slashes)
+        List<String> allowedOrigins = Arrays.asList(
+            frontendUrl,
             "http://localhost:5173",
             "http://localhost:3000",
-            "https://cession-frontend*.vercel.app" // wildcard for all Vercel preview domains
-        ));
+            "https://cession-frontend.vercel.app"
+        );
+        
+        System.out.println("Configuring CORS with allowed origins: " + allowedOrigins);
+        
+        // For Spring Boot 2.4+
+        configuration.setAllowedOrigins(allowedOrigins);
+        
+        // If you need patterns (e.g., for Vercel preview deployments), use:
+        // configuration.setAllowedOriginPatterns(Arrays.asList(
+        //     frontendUrl,
+        //     "http://localhost:*",
+        //     "https://cession-frontend*.vercel.app"
+        // ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(
@@ -55,16 +73,20 @@ public class WebSecurityConfig {
             "Content-Type",
             "Accept",
             "Origin",
+            "X-Requested-With",
             "Access-Control-Request-Method",
             "Access-Control-Request-Headers"
         ));
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization",
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Credentials"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Register for all paths (including /api/**)
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-} 
+}
