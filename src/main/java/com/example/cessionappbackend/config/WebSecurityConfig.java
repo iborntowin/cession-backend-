@@ -34,17 +34,15 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Allow production and development frontend URLs
-        configuration.setAllowedOrigins(Arrays.asList(
-            frontendUrl, // from environment variable
+
+        // Allow production frontend from env, localhost for dev, and all Vercel preview domains
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            frontendUrl, // from environment variable (main production frontend)
             "http://localhost:5173",
             "http://localhost:3000",
-            "https://cession-frontend.vercel.app",
-            "https://cession-frontend-git-master-iborntowins-projects.vercel.app",
-            "https://cession-frontend-londe28bg-iborntowins-projects.vercel.app"
+            "https://cession-frontend*.vercel.app" // wildcard for all Vercel preview domains
         ));
-        
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList(
             "Authorization",
@@ -59,7 +57,8 @@ public class WebSecurityConfig {
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
+        // Register for all paths (including /api/**)
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 } 
