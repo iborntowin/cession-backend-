@@ -40,7 +40,9 @@ public class WebSecurityConfig {
             frontendUrl, // from environment variable
             "http://localhost:5173",
             "http://localhost:3000",
-            "https://cession-frontend.vercel.app" // actual deployed Vercel domain
+            "https://cession-frontend.vercel.app",
+            "https://cession-frontend-git-master-iborntowins-projects.vercel.app",
+            "https://cession-frontend-londe28bg-iborntowins-projects.vercel.app"
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
