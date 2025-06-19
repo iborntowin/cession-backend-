@@ -35,12 +35,12 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Allow both development and production URLs
+        // Allow production and development frontend URLs
         configuration.setAllowedOrigins(Arrays.asList(
-            frontendUrl,
+            frontendUrl, // from environment variable
             "http://localhost:5173",
             "http://localhost:3000",
-            "https://your-vercel-domain.vercel.app"  // Replace with your actual Vercel domain
+            "https://cession-frontend.vercel.app" // actual deployed Vercel domain
         ));
         
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
