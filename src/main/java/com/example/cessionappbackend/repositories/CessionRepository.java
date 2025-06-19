@@ -45,6 +45,6 @@ public interface CessionRepository extends JpaRepository<Cession, UUID> {
             @Param("phoneNumber") String phoneNumber,
             @Param("workplace") String workplace,
             @Param("address") String address,
-            @Param("workerNumber") Integer workerNumber
+            @Param("workerNumber") Long workerNumber
     );
 }

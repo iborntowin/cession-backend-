@@ -65,7 +65,7 @@ public class CessionService {
     }
 
     @Transactional(readOnly = true)
-    public List<CessionDTO> searchCessions(String name, String job, Integer clientNumber, Integer clientCin, String phoneNumber, String workplace, String address, Integer workerNumber) {
+    public List<CessionDTO> searchCessions(String name, String job, Integer clientNumber, Integer clientCin, String phoneNumber, String workplace, String address, Long workerNumber) {
         try {
             logger.debug("Searching cessions with criteria - name: {}, job: {}, clientNumber: {}, clientCin: {}, phoneNumber: {}, workplace: {}, address: {}, workerNumber: {}", 
                     name, job, clientNumber, clientCin, phoneNumber, workplace, address, workerNumber);

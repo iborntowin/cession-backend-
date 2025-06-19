@@ -13,6 +13,6 @@ public interface ClientRepository extends JpaRepository<Client, UUID>, JpaSpecif
     Optional<Client> findByCin(Integer cin);
     Optional<Client> findByClientNumber(Integer clientNumber);
     Optional<Client> findByFullName(String fullName);
-    Optional<Client> findByWorkerNumber(Integer workerNumber);
+    Optional<Client> findByWorkerNumber(Long workerNumber);
     // Add custom query methods if needed, e.g., find by name containing
 }

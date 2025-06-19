@@ -47,7 +47,7 @@ public class CessionController {
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(required = false) String workplace,
             @RequestParam(required = false) String address,
-            @RequestParam(required = false) Integer workerNumber) {
+            @RequestParam(required = false) Long workerNumber) {
         try {
             logger.debug("Search request received - name: {}, job: {}, clientNumber: {}, clientCin: {}, phoneNumber: {}, workplace: {}, address: {}, workerNumber: {}", 
                     name, job, clientNumber, clientCin, phoneNumber, workplace, address, workerNumber);
@@ -63,7 +63,7 @@ public class CessionController {
             return ResponseEntity.ok(cessions);
         } catch (Exception e) {
             logger.error("Error searching cessions", e);
-            return ResponseEntity.badRequest().build();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error searching cessions", e);
         }
     }
 

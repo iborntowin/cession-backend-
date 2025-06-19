@@ -46,7 +46,7 @@ public class ClientController {
             @RequestParam(required = false) Integer cin,
             @RequestParam(required = false) String phoneNumber,
             @RequestParam(required = false) String address,
-            @RequestParam(required = false) Integer workerNumber) {
+            @RequestParam(required = false) Long workerNumber) {
         logger.debug("Attempting to search clients. Current authentication: {}", SecurityContextHolder.getContext().getAuthentication());
         // If all parameters are null, return all clients
         if (name == null && workplaceName == null && jobName == null && clientNumber == null && cin == null &&

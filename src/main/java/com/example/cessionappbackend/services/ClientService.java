@@ -90,7 +90,7 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public List<ClientDTO> searchClients(String name, String workplaceName, String jobName, Integer clientNumber, Integer cin, String phoneNumber, String address, Integer workerNumber) {
+    public List<ClientDTO> searchClients(String name, String workplaceName, String jobName, Integer clientNumber, Integer cin, String phoneNumber, String address, Long workerNumber) {
         Specification<Client> spec = (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
